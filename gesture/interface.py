@@ -43,6 +43,16 @@ class Speech:
                 print("Speech unavailable. Install eSpeak NG or use macOS say. Text is active.",
                       file=sys.stderr)
 
+    def check(self):
+        if self.process is None:
+            return
+        code = self.process.poll()
+        if code is not None:
+            self.process = None
+            if code:
+                self.command = None
+                print(f"Speech exited with status {code}. Text is active.", file=sys.stderr)
+
     def stop(self):
         if self.process and self.process.poll() is None:
             self.process.terminate()

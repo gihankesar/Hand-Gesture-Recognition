@@ -57,6 +57,32 @@ class RulesTests(unittest.TestCase):
         self.assertEqual(classify(self.pose([100, 170, 170, 170], thumb_index_gap=.22)), "Pinch")
         self.assertEqual(classify(self.pose([90]*4, thumb_palm_gap=1.2)), "Unknown")
 
+    def test_complete_landmarks_to_labels(self):
+        # Analytic flexion in the image plane; curled fingers bend 90 degrees.
+        def landmarks(extended):
+            points = [(0, -1), (-1.6, -.5), (-1.4, -.2), (-1, 0), (-.4, .3)]
+            for x, straight in zip([-1, 0, .6, 1], extended):
+                points.extend([(x, 0), (x, .6)])
+                if straight:
+                    points.extend([(x, 1), (x, 1.3)])
+                else:
+                    points.extend([(x+.3, .6), (x+.3, .3)])
+            return np.asarray(points)
+
+        for mask, expected in [([1, 1, 1, 1], "Open Palm"), ([0, 0, 0, 0], "Fist"),
+                               ([1, 0, 0, 0], "Point"), ([1, 1, 0, 0], "V Sign"),
+                               ([0, 1, 0, 0], "Unknown")]:
+            self.assertEqual(classify(extract(landmarks(mask))), expected)
+        pinch = landmarks([0, 1, 1, 1])
+        pinch[4] = pinch[8] + [.02, .02]
+        self.assertEqual(classify(extract(pinch)), "Pinch")
+
+    def test_out_of_plane_projection(self):
+        # Projection loses depth: a right angle in space appears straight.
+        a, b, c = np.array([[-1, 0, 1], [0, 0, 0], [1, 0, 1]])
+        self.assertAlmostEqual(calculate_angle(a, b, c), 90)
+        self.assertAlmostEqual(calculate_angle(a[:2], b[:2], c[:2]), 180)
+
     def test_boundaries(self):
         self.assertEqual(classify(self.pose([155, 115, 115, 115])), "Point")
         self.assertEqual(classify(self.pose([154.99, 115, 115, 115])), "Unknown")

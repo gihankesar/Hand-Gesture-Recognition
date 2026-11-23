@@ -87,6 +87,7 @@ def run(args):
                 labels = [hand.label for hand in hands]
                 event = confirmation.update(labels, now)
                 phrase = transcript.confirm(event) if event else None
+                speech.check()
                 if phrase:
                     speech.speak(phrase)
                     if not args.trace:

@@ -1,9 +1,12 @@
+from contextlib import redirect_stderr
+from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 import unittest
+from unittest.mock import Mock, patch
 
-from gesture.interface import load_phrases
+from gesture.interface import Speech, load_phrases
 from gesture.rules import Thresholds
 from gesture.session import PracticeTrial, observe
 
@@ -38,3 +41,20 @@ class SessionTests(unittest.TestCase):
                 path.write_text(data)
                 with self.assertRaises(ValueError):
                     load_phrases(path)
+
+
+    def test_speech_fallback_keeps_text_available(self):
+        with patch("shutil.which", return_value=None), redirect_stderr(StringIO()) as output:
+            speech = Speech(True)
+            speech.speak("Hello.")
+            self.assertIn("Text is active", output.getvalue())
+
+    def test_speech_backend_error(self):
+        with patch("shutil.which", return_value="/mock/espeak-ng"):
+            speech = Speech(True)
+        speech.process = Mock()
+        speech.process.poll.return_value = 1
+        with redirect_stderr(StringIO()) as output:
+            speech.check()
+        self.assertIsNone(speech.command)
+        self.assertIn("status 1", output.getvalue())
