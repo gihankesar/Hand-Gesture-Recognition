@@ -27,7 +27,9 @@ class Confirmation:
         if self.last_time is not None and now_ms - self.last_time > self.max_gap_ms:
             self.candidate = None  # Unobserved time is never evidence of a hold or release.
         self.last_time = now_ms
-        label = labels[0] if len(labels) == 1 else UNKNOWN if labels else NO_HAND
+        label = NO_HAND
+        if labels:
+            label = labels[0] if len(labels) == 1 else UNKNOWN
         if label != self.candidate:
             self.candidate = label
             self.since = now_ms

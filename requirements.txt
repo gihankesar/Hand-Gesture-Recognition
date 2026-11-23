@@ -1,0 +1,4 @@
+# Versions exercised together on CPython 3.12, Linux x86-64.
+numpy==2.5.5
+opencv-contrib-python==5.1.0.95
+mediapipe==1.2.3

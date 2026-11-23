@@ -39,7 +39,8 @@ class GeometryTests(unittest.TestCase):
         self.assertEqual(image_points(p, 640, 480, True), [(320, 120, -64)])
 
     def test_invalid(self):
-        for data in [None, [], [[1]], np.zeros((21, 3)), np.full((21, 2), np.nan)]:
+        for data in [None, [], [[1]], np.zeros((21, 3)), np.full((21, 2), np.nan),
+                     np.arange(42).reshape(21, 2)]:
             self.assertEqual(classify(extract(data)), "Unknown")
 
 

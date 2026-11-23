@@ -50,6 +50,11 @@ def extract(points):
     length = distance(0, 9)
     if min(width, length) <= 1e-9 or width < 0.15 * length:
         return None
+    # Near-collinear palm axes give unreliable separation and projected angles.
+    across = (p[17] - p[5]) / width
+    along = (p[9] - p[0]) / length
+    if np.linalg.norm(along - np.dot(along, across) * across) < 0.15:
+        return None
     # Use palm-width units before checking bone lengths, across image sizes.
     p = (p - p[0]) / width
     bases = (5, 9, 13, 17)
